@@ -11,7 +11,8 @@ export default defineConfig({
                 target: process.env.VITE_API_URL || 'http://localhost:3000',
                 changeOrigin: true
             }
-        }
+        },
+        allowedHosts: ['mini-matchkin-api-backend-2.onrender.com']
     },
     preview: {
         port: process.env.PORT || 4173,
