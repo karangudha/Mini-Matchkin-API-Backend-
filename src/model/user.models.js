@@ -5,9 +5,7 @@ const userSchema = new Schema(
     {
         name: {
             type: String,
-            required: function () {
-                return !this.otp; // Only required when not verifying OTP
-            }
+            required: true,
         },
         email: {
             type: String,
@@ -17,9 +15,7 @@ const userSchema = new Schema(
         role: {
             type: String,
             enum: ['consultant', 'client'],
-            required: function () {
-                return !this.otp; // Only required when not verifying OTP
-            }
+            required: true,
         },
         otp: {
             type: String
