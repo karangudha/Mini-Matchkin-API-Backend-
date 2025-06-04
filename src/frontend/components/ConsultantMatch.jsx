@@ -12,10 +12,11 @@ function ConsultantMatch({ token }) {
     const [matches, setMatches] = useState([])
     const [error, setError] = useState('')
 
+    const API_URL = import.meta.env.VITE_API_URL;
     const handleSubmit = async (e) => {
         e.preventDefault()
         try {
-            const response = await fetch('http://localhost:3000/api/auth/consultant-match', {
+            const response = await fetch('{API_URL}/api/auth/consultant-match', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
