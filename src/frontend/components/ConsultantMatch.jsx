@@ -16,7 +16,7 @@ function ConsultantMatch({ token }) {
     const handleSubmit = async (e) => {
         e.preventDefault()
         try {
-            const response = await fetch('{API_URL}/api/auth/consultant-match', {
+            const response = await fetch(`${API_URL}/api/auth/consultant-match`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

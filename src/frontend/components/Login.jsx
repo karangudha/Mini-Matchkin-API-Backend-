@@ -9,7 +9,7 @@ function Login({ onLogin }) {
     const handleGenerateOTP = async (e) => {
         e.preventDefault()
         try {
-            const response = await fetch('${API_URL}/api/auth/generate-otp', {
+            const response = await fetch(`${API_URL}/api/auth/generate-otp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -31,7 +31,7 @@ function Login({ onLogin }) {
     const handleVerifyOTP = async (e) => {
         e.preventDefault()
         try {
-            const response = await fetch('${API_URL}/api/auth/verify-otp', {
+            const response = await fetch(`${API_URL}/api/auth/verify-otp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
