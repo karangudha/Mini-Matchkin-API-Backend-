@@ -1,7 +1,41 @@
-import User from '../model/user.models.js';
+import { User } from '../model/user.models.js';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import ConsultantProfile from '../model/consultantprofile.model.js';
+
+
+export const generateAccessTokenAndRefreshToken = async (userId) => {
+    try {
+        console.log("Fetching user with ID:", userId);
+
+        const user = await User.findById(userId);
+        if (!user) {
+            console.log("User not found");
+            throw new Error("User not found");
+        }
+
+        console.log("User found:", user.email);
+
+        const accessToken = user.generateAccessToken();
+        console.log("Access token generated");
+
+        const refreshToken = user.generateRefreshToken();
+        console.log("Refresh token generated");
+
+        await User.findByIdAndUpdate(
+            userId,
+            { refreshToken },
+            { new: true }
+        );
+
+        console.log("User updated with refresh token");
+
+        return { accessToken, refreshToken };
+    } catch (error) {
+        console.error("Failed to create token", error);
+        throw new Error("Something went wrong while generating tokens");
+    }
+};
 
 
 export const generateOTP = async (req, res) => {
@@ -70,21 +104,30 @@ export const verifyOTP = async (req, res) => {
         user.otpExpiry = undefined;
         await user.save();
 
-        // Generate JWT token
-        const token = jwt.sign(
-            {
-                userId: user._id,
-            },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
+        const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(user._id);
 
-        res.status(200).json({
-            message: "OTP verified successfully"
-        });
+        const loggedInUser = await User.findById(user._id);
+
+        const option = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+        }
+
+
+        res
+            .status(200)
+            .cookie("accessToken", accessToken, option)
+            .cookie("refreshToken", refreshToken, option)
+            .json({
+                message: "OTP verified successfully"
+            });
     } catch (error) {
         console.error("OTP verification error:", error);
-        res.status(500).json({ message: "Failed to verify OTP" });
+        res
+            .status(500)
+            .json({
+                message: "Failed to verify OTP"
+            });
     }
 };
 
@@ -145,5 +188,71 @@ export const match = async (req, res) => {
     } catch (error) {
         console.error("Match error:", error);
         res.status(500).json({ message: "Failed to match consultants" });
+    }
+};
+
+export const refreshAccessToken = async (req, res) => {
+    try {
+        const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+        if (!incomingRefreshToken) {
+            return res.status(401).json({ message: "Refresh token is required" });
+        }
+
+        let decodedToken;
+        try {
+            decodedToken = jwt.verify(
+                incomingRefreshToken,
+                process.env.REFRESH_TOKEN_SECRET
+            )
+        } catch (error) {
+            return res.status(401).json({ message: "Invalid or expired refresh token" });
+        }
+
+        const user = await User.findById(decodedToken._id);
+
+        if (!user || incomingRefreshToken !== user.refreshToken) {
+            return res.status(401).json({ message: "Refresh token is used or expired" });
+        }
+
+        const { accessToken, refreshToken: newRefreshToken } = await generateAccessTokenAndRefreshToken(user._id);
+
+        const options = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+        }
+
+        res
+            .status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", newRefreshToken, options)
+            .json({
+                message: "Access token refreshed successfully"
+            });
+    } catch (error) {
+        console.error("Access token refresh error:", error);
+        res.status(500).json({
+            message: "Failed to refresh token"
+        });
+    }
+};
+
+export const getMe = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const user = await User.findById(userId).select('-otp -otpExpiry -refreshToken');
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({
+            message: "User details fetched successfully",
+            user
+        });
+    } catch (error) {
+        console.error("Get user error:", error);
+        res.status(500).json({ message: "Failed to fetch user details" });
     }
 };

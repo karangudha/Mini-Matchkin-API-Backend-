@@ -3,14 +3,23 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import authRoutes from './src/routes/auth.routes.js';
+import cookiesParser from 'cookie-parser';
+
+
 
 dotenv.config();
 
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+    //origin: 'http://localhost:5173',
+    origin: 'https://mini-matchkin-api-backend-2.onrender.com',
+    credentials: true,
+}))
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }))
+app.use(cookiesParser());
 
 // Routes
 app.use('/api/auth', authRoutes);
