@@ -106,11 +106,10 @@ export const verifyOTP = async (req, res) => {
 
         const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(user._id);
 
-        const loggedInUser = await User.findById(user._id);
-
         const option = {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
+            sameSite: 'None'
         }
 
 
@@ -220,6 +219,7 @@ export const refreshAccessToken = async (req, res) => {
         const options = {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
+            sameSite: 'None',
         }
 
         res
