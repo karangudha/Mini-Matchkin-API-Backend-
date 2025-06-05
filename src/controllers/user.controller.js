@@ -130,7 +130,7 @@ export const match = async (req, res) => {
             return res.status(400).json({ message: 'Missing skills, domain or timeline in request' });
         }
 
-        const consultants = await ConsultantProfile.find({});
+        const consultants = await ConsultantProfile.find({}).populate('consultantId');
 
         const matches = consultants.map((consultant) => {
             const matchedSkills = consultant.skills.filter(skill => skills.includes(skill));
@@ -164,8 +164,8 @@ export const match = async (req, res) => {
         res.status(200).json({
             message: 'Top consultant matches found',
             matches: topMatches.map(({ consultant, score, explanation }) => ({
-                name: consultant.name,
-                email: consultant.email,
+                name: consultant.consultantId?.name,
+                email: consultant.consultantId?.email,
                 skills: consultant.skills,
                 domain: consultant.domain,
                 availableFrom: consultant.availableFrom,
