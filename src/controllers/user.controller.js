@@ -6,29 +6,20 @@ import ConsultantProfile from '../model/consultantprofile.model.js';
 
 export const generateAccessTokenAndRefreshToken = async (userId) => {
     try {
-        console.log("Fetching user with ID:", userId);
-
         const user = await User.findById(userId);
         if (!user) {
             console.log("User not found");
             throw new Error("User not found");
         }
 
-        console.log("User found:", user.email);
-
         const accessToken = user.generateAccessToken();
-        console.log("Access token generated");
-
         const refreshToken = user.generateRefreshToken();
-        console.log("Refresh token generated");
 
         await User.findByIdAndUpdate(
             userId,
             { refreshToken },
             { new: true }
         );
-
-        console.log("User updated with refresh token");
 
         return { accessToken, refreshToken };
     } catch (error) {
@@ -37,7 +28,7 @@ export const generateAccessTokenAndRefreshToken = async (userId) => {
     }
 };
 
-
+// Generate OTP and send via email
 export const generateOTP = async (req, res) => {
     try {
         const { email } = req.body;
